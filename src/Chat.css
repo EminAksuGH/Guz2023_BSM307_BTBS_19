@@ -1,0 +1,121 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #4B4952;
+}
+
+#chat-container {
+    background-color:  #f5edf4;;
+    display: flex;
+    flex-direction: column;
+    width: 600px;
+    height: 600px;
+    margin: 0 auto;
+    border-radius: 0px 20px 20px 0px;
+}
+
+#message-input {
+    display: flex;
+    width: 600px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+textarea {
+    width: 100%;
+    resize: none;
+    padding: 10px;
+    border-radius: 20px;
+}
+
+#messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column; /* Mesajları alt alta sırala */
+}
+
+.message-box {
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    max-width: 70%;
+    word-wrap: break-word;
+    overflow-wrap: break-word; /* Eklendi: İçeriklerin kırılmasını sağlar */
+    display: inline-block; /* Eklendi: Satır içi blok olarak görüntüleme */
+}
+
+
+.sent {
+    background-color: #e0e0e0;
+    color: rgb(0, 0, 0);
+    align-self: flex-end;
+    overflow: hidden; /* İçerik kutunun dışına taşmasını önle */
+    max-width: 70%; /* Maksimum genişlik belirle (isteğe bağlı) */
+}
+
+.received {
+    background-color: #e0e0e0;
+    align-self: flex-start;
+}
+
+button {
+    padding: 5px 10px;
+    margin-left: 5px;
+    background-color: #4b0c3c;
+    border-radius: 20px 20px 20px 20px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color:#c9b4c2;
+}
+
+#sidebar {
+    width: 200px;
+    height: 600px;
+    position: fixed;
+    left: 245px;
+    top: 48px;
+    padding: 20px;
+    background-color: #f5edf4;
+    border-right: 4px solid#b890a9;
+    border-radius: 20px 0px 0px 20px;
+}
+#sidebar h2 {
+    
+    border: 2px solid #b890a9; /* Alt kenarlık ekliyoruz */
+    border-radius: 20px 20px 20px 20px;
+    padding: 10px;
+    margin-left: 20%;
+    margin-right: 20%;
+    text-align: center;
+    
+  }
+  
+.avatar {
+    width: 20px; /* veya istediğiniz bir genişlik */
+    height: 20px; /* veya istediğiniz bir yükseklik */
+    margin-right: 8px; /* veya istediğiniz bir boşluk */
+    border-radius: 40px 40px 40px 40px;
+}
+  
+#online-users {
+    list-style-type: none;
+    padding: 0;
+}
+
+#online-users li {
+    padding: 5px;
+    cursor: pointer;
+}
+
+#online-users li:hover {
+    background-color: #f8f9fa;
+}
+
+.active {
+    font-weight: bold;
+}
