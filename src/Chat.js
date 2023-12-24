@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import socketIOClient from 'socket.io-client';
 import axios from 'axios';
 
-
 const Chat = () => {
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [privateMessageTarget, setPrivateMessageTarget] = useState('');
@@ -10,14 +9,15 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [socket, setSocket] = useState(null);
   const [username, setUsername] = useState('');
+  const [unreadMessages, setUnreadMessages] = useState({});
 
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
-  
+
     const socket = socketIOClient('http://localhost:3001');
     setSocket(socket);
-  
+
     fetch('http://localhost:3001/getusername', {
       method: 'GET',
       headers: {
@@ -33,21 +33,30 @@ const Chat = () => {
       .catch(error => {
         console.error('Error fetching username:', error);
       });
-  
+
     socket.emit('userConnected', username);
-  
+
     socket.on('connectedUsers', (users) => {
       const filteredUsers = users.filter((user) => user !== username);
       setConnectedUsers(filteredUsers);
     });
-  
+
     socket.on('privateMessage', (data) => {
+      const sender = data.from;
+
+      if (sender !== privateMessageTarget) {
+        setUnreadMessages((prevUnreadMessages) => ({
+          ...prevUnreadMessages,
+          [sender]: (prevUnreadMessages[sender] || 0) + 1,
+        }));
+      }
+
       setMessages((prevMessages) => [
         ...prevMessages,
-        { sender: data.from, content: data.message, type: 'received' },
+        { sender, content: data.message, type: 'received' },
       ]);
     });
-  
+
     return () => {
       socket.disconnect();
     };
@@ -118,6 +127,20 @@ const Chat = () => {
   };
 
   const handleUserClick = (recipient) => {
+    // Clear unread messages for the selected user
+    setUnreadMessages((prevUnreadMessages) => ({
+      ...prevUnreadMessages,
+      [recipient]: 0,
+    }));
+
+    // Mark messages as read when the user is in the chat
+    if (recipient === privateMessageTarget) {
+      setUnreadMessages((prevUnreadMessages) => ({
+        ...prevUnreadMessages,
+        [recipient]: 0,
+      }));
+    }
+
     setPrivateMessageTarget(recipient);
   };
 
@@ -132,6 +155,7 @@ const Chat = () => {
     setMessages([]);
   };
 
+
   return (
     <div className="flex h-auto">
       <div className="w-1/5 bg-gray-200 p-4">
@@ -141,9 +165,12 @@ const Chat = () => {
             <li
               key={user.id}
               onClick={() => handleUserClick(user)}
-              className="cursor-pointer text-blue-500 hover:underline"
+              className="cursor-pointer text-blue-500 hover:underline relative"
             >
               {user}
+              {unreadMessages[user] > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 rounded-full h-3 w-3"></span>
+              )}
             </li>
           ))}
         </ul>
