@@ -38,7 +38,7 @@ const withAuth = WrappedComponent => {
             const accessToken = localStorage.getItem('accesToken')
             const axios = require('axios');
 
-      const apiUrl = 'http://localhost:3001/views/login';  // Replace with your API endpoint
+      const apiUrl = 'http://localhost:3001/auth/login';  // Replace with your API endpoint
       let data=null;
       // Example GET request with Authorization header
       axios.post(apiUrl, {

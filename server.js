@@ -33,7 +33,7 @@ io.on('connection', (socket) => {
     connectedUsers[socket.id] = username;
     io.emit('connectedUsers', Object.values(connectedUsers));
   });
-  
+
   socket.on('privateMessage', (data) => {
     io.to(data.recipient).emit('privateMessage', {
       from: socket.username,
@@ -42,21 +42,22 @@ io.on('connection', (socket) => {
     console.log(data);
   });
 
-    socket.on('disconnect', () => {
-      delete connectedUsers[socket.id];
-      io.emit('connectedUsers', Object.values(connectedUsers));
-    });
+  socket.on('disconnect', () => {
+    delete connectedUsers[socket.id];
+    io.emit('connectedUsers', Object.values(connectedUsers));
   });
+});
 
-  app.get('/getusername', verifyJWT, (req, res) => {
-    res.json({ username: req.username });
-  });
-    app.use('/admin', admin);
+
+app.get('/getusername', verifyJWT, (req, res) => {
+  res.json({ username: req.username });
+});
+
+app.use('/admin', admin);
 app.use('/auth', require('./routes/authRoutes'));
 
-
-
-sequelize.sync()
+sequelize
+  .sync()
   .then(() => {
     console.log('Database synchronized successfully');
   })

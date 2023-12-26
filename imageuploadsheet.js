@@ -135,26 +135,47 @@ const Chat = () => {
     console.log('Username:', username);
   
     const formData = new FormData();
-    
+  
     if (file) {
       formData.append('file', file, file.name);
       formData.append('sender', username);
-      
+  
       for (const pair of formData.entries()) {
         console.log(pair[0] + ', ' + pair[1]);
       }
   
       try {
-        await axios.post('http://localhost:3001/auth/upload', formData);
+        const response = await axios.post('http://localhost:3001/auth/upload', formData);
+  
+        // Extract file information
+        const fileInfo = {
+          filename: file.name,
+          size: file.size,
+          type: file.type,
+        };
+  
+        let content = '';
+
+// If the uploaded file is an image, include image data in the state
+if (fileInfo.type.startsWith('image')) {
+  const data = response.data; // Assuming the server sends the image data
+  fileInfo.data = data; // Assuming the image data is directly sent from the server
+  // You can choose to keep content as an empty string or remove this line if you don't want any text content
+}
+
+setMessages((prevMessages) => [
+  ...prevMessages,
+  { sender: username, content, type: 'sent', fileInfo },
+]);
         console.log('File uploaded successfully');
         fileInputRef.current.value = ''; // Resetting the value to an empty string
       } catch (error) {
         console.error('Error uploading file:', error.message);
       }
-    } else {
-      console.error('No file selected.');
     }
   };
+  
+  
   const handleUserClick = (recipient) => {
     // Clear unread messages for the selected user
     setUnreadMessages((prevUnreadMessages) => ({
@@ -205,18 +226,25 @@ const Chat = () => {
       </div>
       <div className="w-4/5 bg-white p-4 flex flex-col h-screen">
         <div className="flex-grow mb-4 overflow-y-auto">
-          {privateMessageTarget && (
-            <ul className="list-disc pl-6">
-              {messages.map((msg, index) => (
-                <li
-                  key={index}
-                  className={`mb-2 ${msg.type === 'sent' ? 'text-green-600' : 'text-blue-600'}`}
-                >
-                  <strong>{msg.sender}:</strong> {msg.content}
-                </li>
-              ))}
-            </ul>
-          )}
+        {privateMessageTarget && (
+  <ul className="list-disc pl-6">
+    {messages.map((msg, index) => (
+      <li
+        key={index}
+        className={`mb-2 ${msg.type === 'sent' ? 'text-green-600' : 'text-blue-600'}`}
+      >
+        <strong>{msg.sender}:</strong> {msg.content}
+        
+        {/* Display image if the message is related to an image */}
+        {msg.type === 'received' && msg.fileInfo && msg.fileInfo.type.startsWith('image') && (
+          <div>
+            <img src={`data:${msg.fileInfo.type};base64,${msg.fileInfo.data}`} alt="" />
+          </div>
+        )}
+      </li>
+    ))}
+  </ul>
+)}
         </div>
 
         {privateMessageTarget && (
