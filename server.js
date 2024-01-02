@@ -9,6 +9,7 @@ require('dotenv').config();
 const app = express();
 const admin = require('./src/admin/admin');
 const verifyJWT = require('./middlewares/jwtVerify');
+const path = require('path');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -38,8 +39,8 @@ io.on('connection', (socket) => {
     io.to(data.recipient).emit('privateMessage', {
       from: socket.username,
       message: data.message,
+      file: data.fileName,
     });
-    console.log(data);
   });
 
   socket.on('disconnect', () => {
@@ -54,7 +55,9 @@ app.get('/getusername', verifyJWT, (req, res) => {
 });
 
 app.use('/admin', admin);
+app.use('/auth/getFile', express.static(path.join(__dirname, 'uploads')));
 app.use('/auth', require('./routes/authRoutes'));
+
 
 sequelize
   .sync()

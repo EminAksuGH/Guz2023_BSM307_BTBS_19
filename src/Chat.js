@@ -11,10 +11,11 @@ const Chat = () => {
   const [username, setUsername] = useState('');
   const [unreadMessages, setUnreadMessages] = useState({});
   const fileInputRef = useRef(null);
+  const messagesContainerRef = useRef();
+  const [isScrolledUp, setIsScrolledUp] = useState(false);
 
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
-
     const socket = socketIOClient('http://localhost:3001');
     setSocket(socket);
 
@@ -63,6 +64,10 @@ const Chat = () => {
   }, [username, privateMessageTarget]);
 
   useEffect(() => {
+    if (!isScrolledUp && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+    
     const fetchMessageHistory = async () => {
       try {
         const response = await axios.get(
@@ -76,9 +81,12 @@ const Chat = () => {
               sender: msg.sender,
               content: msg.content,
               type: msg.sender === username ? 'sent' : 'received',
+              fileName: msg.fileName,
             };
           });
+
           setMessages(updatedMessages);
+
         } else {
           console.error('Error fetching message history:', data.error);
         }
@@ -90,25 +98,69 @@ const Chat = () => {
     if (privateMessageTarget) {
       fetchMessageHistory();
     }
-  }, [username, privateMessageTarget]);
+  }, [username, privateMessageTarget, isScrolledUp]);
+
+  const handleScroll = () => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      setIsScrolledUp(container.scrollTop < container.scrollHeight - container.clientHeight);
+    }
+     };
+
 
   const handleSendMessage = async () => {
     if (privateMessageTarget && socket) {
-      if (messageInput) {
-        socket.emit('privateMessage', {
-          recipient: privateMessageTarget,
-          message: messageInput,
-        });
+      // Combine text message and file data in a single object
+      const messageData = {
+        recipient: privateMessageTarget,
+        message: messageInput || 'file', // Use an empty string if there is no text message
+        fileName: null, // No file name for text messages by default
+        content: messageInput,
+      };
+      console.log(messageData);
+  
+      // Check if there is a file
+      if (fileInputRef.current && fileInputRef.current.files.length > 0) {
+        const file = fileInputRef.current.files[0];
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        formData.append('sender', username);
+        formData.append('recipient', privateMessageTarget);
+        formData.append('content', 'file');
+  
+        try {
+          await axios.post('http://localhost:3001/auth/saveFile', formData);
+          console.log('File uploaded successfully');
+          fileInputRef.current.value = ''; // Reset the value to an empty string
+  
+          // Set the file name in the messageData
+          messageData.fileName = file.name;
+        } catch (error) {
+          console.error('Error uploading file:', error.message);
+          return; // Stop further processing if file upload fails
+        }
+      }
+  
+      // Emit the privateMessage event with combined text message and file data
+      socket.emit('privateMessage', messageData);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: username, content: messageInput, type: 'sent' },
+      ]);
 
+      setMessageInput('');
+  
+      // Handle text message if it exists
+      if (messageInput) {
         try {
           const response = await axios.post('http://localhost:3001/auth/message', {
             sender: username,
             recipient: privateMessageTarget,
             content: messageInput,
           });
-
+  
           const data = response.data;
-
+  
           if (data.success) {
             console.log('Text message sent successfully:', data);
           } else {
@@ -117,50 +169,22 @@ const Chat = () => {
         } catch (error) {
           console.error('Error sending text message:', error.message);
         }
-
+  
         setMessages((prevMessages) => [
           ...prevMessages,
           { sender: username, content: messageInput, type: 'sent' },
         ]);
-
+  
         setMessageInput('');
-      } else if (fileInputRef.current.files.length > 0) {
-        handleFileUpload(fileInputRef.current.files[0]);
       }
     }
   };
 
-  const handleFileUpload = async (file) => {
-    console.log('File:', file);
-    console.log('Username:', username);
-  
-    const formData = new FormData();
-    
-    if (file) {
-      formData.append('file', file, file.name);
-      formData.append('sender', username);
-      
-      for (const pair of formData.entries()) {
-        console.log(pair[0] + ', ' + pair[1]);
-      }
-  
-      try {
-        await axios.post('http://localhost:3001/auth/upload', formData);
-        console.log('File uploaded successfully');
-        fileInputRef.current.value = ''; // Resetting the value to an empty string
-      } catch (error) {
-        console.error('Error uploading file:', error.message);
-      }
-    } else {
-      console.error('No file selected.');
-    }
-  };
   const handleUserClick = (recipient) => {
     // Clear unread messages for the selected user
-    setUnreadMessages((prevUnreadMessages) => ({
-      ...prevUnreadMessages,
-      [recipient]: 0,
-    }));
+    setUnreadMessages((prevUnreadMessages) => (
+      { ...prevUnreadMessages, [recipient]: 0 }
+    ));
 
     // Mark messages as read when the user is in the chat
     if (recipient === privateMessageTarget) {
@@ -184,11 +208,21 @@ const Chat = () => {
     setMessages([]);
   };
 
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
-    <div className="flex h-auto">
-      <div className="w-1/5 bg-gray-200 p-4">
-        <h1 className="text-xl font-bold mb-4">Connected Users</h1>
-        <ul className="list-disc pl-4">
+    <div className="flex h-auto w-full fixed">
+      <div className="w-1/6 bg-gray-200 pt-4">
+        <h1 className="text-xl font-bold mb-4 text-center">Connected Users</h1>
+        <ul className="list-disc pl-8">
           {connectedUsers.map((user) => (
             <li
               key={user.id}
@@ -203,20 +237,28 @@ const Chat = () => {
           ))}
         </ul>
       </div>
-      <div className="w-4/5 bg-white p-4 flex flex-col h-screen">
-        <div className="flex-grow mb-4 overflow-y-auto">
-          {privateMessageTarget && (
-            <ul className="list-disc pl-6">
-              {messages.map((msg, index) => (
-                <li
-                  key={index}
-                  className={`mb-2 ${msg.type === 'sent' ? 'text-green-600' : 'text-blue-600'}`}
-                >
-                  <strong>{msg.sender}:</strong> {msg.content}
-                </li>
-              ))}
-            </ul>
-          )}
+      <div className="w-full bg-white p-4 flex flex-col h-screen">
+        <div className="flex-grow mb-4 overflow-y-auto" ref={messagesContainerRef} onScroll={handleScroll}>
+
+        {privateMessageTarget && (
+          <ul className="list-disc pl-6">
+            {messages.map((msg, index) => (
+              <li key={index} className={`mb-2 ${msg.type === 'sent' ? 'text-green-600' : 'text-blue-600'}`}>
+                <strong>{msg.sender}: </strong>
+                {msg.content === 'file' ? (
+                  <img
+                    src={`http://localhost:3001/auth/getFile/${msg.sender}/${msg.fileName}`}
+                    alt="Uploaded File"
+                    style={{ maxWidth: '300px', maxHeight: '200px' }}
+                  />
+                ) : (
+                  msg.content
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+          <div ref={messagesEndRef}></div>
         </div>
 
         {privateMessageTarget && (
@@ -231,7 +273,7 @@ const Chat = () => {
             <input
               ref={fileInputRef}
               type="file"
-              onClick={async () => await handleFileUpload(fileInputRef.current.files[0])}
+              onClick={async () => await handleSendMessage(fileInputRef.current.files[0])}
               className="mb-20 p-2 border border-gray-300 mr-2"
             />
 

@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const multer = require('multer');
-const path = require('path');
-
 const loginController = require('../src/controllers/loginController.js');
 const registerController = require('../src/controllers/registerController.js');
 const messageController = require('../src/controllers/messageController.js');
+const getFileController = require('../src/controllers/getFileController');
 const Message = require('../models/Message.js');
-const File = require('../models/File.js');
 
 
 router.post(
@@ -30,39 +27,11 @@ router.post(
   messageController.saveMessage,
 );
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../uploads'));
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
+router.post('/saveFile', messageController.uploadMiddleware, messageController.saveMessage);
 
-const upload = multer({ storage: storage });
-
-
-router.post('/upload', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded.');
-    }
-
-    const { originalname, path } = req.file;
-
-    const newFile = await File.create({
-      fileName: originalname,
-      filePath: path,
-    });
-
-    console.log('File details saved to the database:', newFile);
-
-    return res.send('File uploaded!');
-  } catch (error) {
-    console.error('Error saving file details to the database:', error);
-    return res.status(500).send('Internal Server Error');
-  }
-});
+router.get(`/getFile/:recipient/:fileName`,
+  getFileController.getFile
+);
 
 
 router.get('/message/history/:sender/:recipient', async (req, res) => {

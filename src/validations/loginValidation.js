@@ -31,24 +31,42 @@ const LoginValidation = () => {
 
     setValidationMessages({ username: '', password: '' });
 
-    const response = await axios.post('http://localhost:3001/auth/login', inputs, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+    try {
+      const response = await axios.post('http://localhost:3001/auth/login', inputs, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
+      const data = response.data;
+
+      if (data.success) {
+        console.log('Login successful');
+        localStorage.setItem('accessToken', data.accessToken);
+        axios.defaults.headers.common['Authorization'] = 'Bearer ' + data.accessToken;
+
+        console.log(response.data);
+        navigate("/chat");
+      } else {
+        setValidationMessages({ ...validationMessages, username: '', password: 'Invalid username or password' });
+        console.error('Login failed:', data.message);
       }
-    });
-
-    const data = response.data;
-
-    if (data.success) {
-      console.log('Login successful');
-      localStorage.setItem('accessToken', data.accessToken);
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + data.accessToken;
-
-      console.log(response.data);
-      navigate("/chat");
-    } else {
-      setValidationMessages({ ...validationMessages, username: '', password: 'Invalid username or password' });
-      console.error('Login failed:', data.message);
+    } catch (error) {
+      // Handle Axios errors here
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Server responded with error status:', error.response.status);
+        setValidationMessages({ ...validationMessages, username: '', password: 'Invalid username or password' });
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received from the server');
+        setValidationMessages({ ...validationMessages, username: '', password: 'No response received from the server' });
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error setting up the request:', error.message);
+        setValidationMessages({ ...validationMessages, username: '', password: 'Error setting up the request' });
+      }
     }
   };
 

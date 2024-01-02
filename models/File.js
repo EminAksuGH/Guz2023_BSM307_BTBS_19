@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+/*const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
 
 const File = sequelize.define('File', {
@@ -32,4 +32,4 @@ const File = sequelize.define('File', {
   timestamps: true,
 });
 
-module.exports = File;
+module.exports = File;*/

@@ -1,24 +1,35 @@
-const File = require('../models/File');
+const multer = require('multer');
+const { resolve } = require('path');
+const Message = require('../../models/Message');
 
-exports.saveFileDetails = async (req, res) => {
-  if (!req.file) {
-    console.log('No file uploaded.');
-    return res.status(400).send('No file uploaded.');
-  }
+const storage = multer.diskStorage({
+    destination: resolve(__dirname, '../uploads'),
+    filename: (req, file, cb) => cb(null, file.originalname),
+});
 
-  const { originalname, path } = req.file;
+const upload = multer({ storage });
 
-  try {
-    // Save file details to the database
-    const newFile = await File.create({
-      fileName: originalname,
-      filePath: path,
-    });
+const saveFile = async (req, res) => {
+    try {
+        if (!req.file) {
+            console.log('No file uploaded.');
+            return res.status(400).send('No file uploaded.');
+        }
 
-    console.log('File details saved to the database:', newFile);
-    res.send('File uploaded!');
-  } catch (error) {
-    console.error('Error saving file details to the database:', error);
-    return res.status(500).send('Internal Server Error');
-  }
+        const { originalname } = req.file;
+
+        const newFile = await Message.create({
+            fileName: originalname,
+        });
+
+        console.log('File details saved to the database:', newFile);
+
+        return res.send('File uploaded!');
+    } catch (error) {
+        console.error('Error saving file details to the database:', error);
+        return res.status(500).send('Internal Server Error');
+    }
 };
+
+module.exports = upload.single('file');
+module.exports.saveFile = saveFile;

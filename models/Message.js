@@ -36,6 +36,16 @@ const Message = sequelize.define('Message', {
       notEmpty: true,
     },
   },
+
+  fileName: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      notNull: false,
+      notEmpty: false,
+    },
+  },
+
 }, {
   timestamps: true,
 });
