@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
     console.log(req.params);
     const { recipient } = req.params;
      //PROBLEM
-    const destinationPath = resolve(__dirname, `../uploads/${recipient}`);
+    const destinationPath = resolve(__dirname, `../uploads`);
 
     try {
       // Create recipient folder if it doesn't exist

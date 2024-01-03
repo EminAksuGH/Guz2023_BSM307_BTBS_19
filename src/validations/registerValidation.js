@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+
 
 const RegisterValidation = () => {
   const [userInfo, setUserInfo] = useState({ username: '', mail: '', password: '', confirmPassword: '' });
@@ -74,12 +75,15 @@ const RegisterValidation = () => {
 
   return (
     <section>
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <h2 className="text-4xl font-bold text-blue-600 mb-4">Register</h2>
-        <div className="w-80 p-4 bg-white rounded shadow">
+      <div className="flex flex-col items-center justify-center h-screen  bg-linear-gradient(#dde1e4 ,#2b0f1c)">
+      <div className="w-100 p-10 bg-white bg-opacity-50 rounded shadow  ">
+      <h2 className="text-5xl font-bold text-black-800 mb-4 text-center ">REGISTER</h2>
+        <p style={{textAlignVertical: "center",textAlign: "center",}}>Welcome to ChitChat!</p>
+      <br></br>
+      
           <label className="block text-gray-700 text-sm font-medium mb-2">
             Username:
-            <input type="text" name="username" value={userInfo.username} onChange={handleChange} className="w-full border border-gray-300 px-3 py-2 rounded mt-1 focus:outline-none focus:ring focus:ring-blue-100 focus:border-blue-300" />
+            <input  type="text" name="username" value={userInfo.username} onChange={handleChange} className="w-full border border-gray-300 px-3 py-2 rounded mt-1 focus:outline-none focus:ring focus:ring-blue-100 focus:border-blue-300" />
             <span className="text-red-500 text-sm">{validationMessages.username}</span>
           </label>
           <label className="block text-gray-700 text-sm font-medium mb-2 mt-4">
@@ -97,11 +101,13 @@ const RegisterValidation = () => {
             <input type="password" name="confirmPassword" value={userInfo.confirmPassword} onChange={handleChange} className="w-full border border-gray-300 px-3 py-2 rounded mt-1 focus:outline-none focus:ring focus:ring-blue-100 focus:border-blue-300" />
             <span className="text-red-500 text-sm">{validationMessages.confirmPassword}</span>
           </label>
+          <br></br>
+          <p style={{textAlignVertical: "center",textAlign: "center",}}>Do you have an account? <Link to="/login"><b>LOGIN</b></Link> </p>
           <button onClick={handleRegister} className="w-full bg-blue-600 text-white px-4 py-2 rounded mt-6 hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-200 focus:ring-opacity-50">Register</button>
         </div>
       </div>
-    </section>
-  );
+    </section>
+  );
 };
 
 export default RegisterValidation;

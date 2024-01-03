@@ -231,7 +231,7 @@ const Chat = () => {
             >
               {user}
               {unreadMessages[user] > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 rounded-full h-3 w-3"></span>
+                <span className="absolute top-0 right-2 bg-red-500 rounded-full h-3 w-3"></span>
               )}
             </li>
           ))}
