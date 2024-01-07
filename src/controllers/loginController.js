@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../../models/User');
 const jwt = require('jsonwebtoken');
-//const crypto = require('crypto');
 const { isEmail } = require("validator");
 
 const validateLoginRequest = (req, res, next) => {
@@ -29,21 +28,20 @@ const checkUserCredentials = async (req, res, next) => {
   next();
 };
 
-//const generateRefreshToken = () => crypto.randomBytes(64).toString('hex');
 
 const generateAccessToken = ( username ) => {
-  return jwt.sign({ username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+  return jwt.sign({ username }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
 };
 
 const loginUser = async (req, res) => {
   try {
     const username = req.User.username;
-    //const refreshToken = generateRefreshToken();
+
     const accessToken = generateAccessToken(username);
   
 
     res.json({
-      success: true, message: 'User signed in successfully', accessToken, //refreshToken
+      success: true, message: 'User signed in successfully', accessToken
     });
   } catch (error) {
     console.error('Error signing in user:', error);

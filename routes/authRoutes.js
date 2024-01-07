@@ -4,7 +4,6 @@ const { Op } = require('sequelize');
 const loginController = require('../src/controllers/loginController.js');
 const registerController = require('../src/controllers/registerController.js');
 const messageController = require('../src/controllers/messageController.js');
-const getFileController = require('../src/controllers/getFileController');
 const Message = require('../models/Message.js');
 
 
@@ -25,12 +24,6 @@ router.post(
 router.post(
   '/message',
   messageController.saveMessage,
-);
-
-router.post('/saveFile', messageController.uploadMiddleware, messageController.saveMessage);
-
-router.get(`/getFile/:recipient/:fileName`,
-  getFileController.getFile
 );
 
 

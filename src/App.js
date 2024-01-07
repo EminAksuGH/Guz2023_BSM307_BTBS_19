@@ -5,15 +5,14 @@ import Login from './views/login';
 import Register from './views/register';
 import Logout from './views/logout';
 import AdminCRUD from './admin/adminCrud';
-import ProfileCard from './ProfileCard';
 
 const App = () => {
  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 
  useEffect(() => {
-    const isAuthenticated = !!localStorage.getItem("accessToken");
-    setIsAuthenticated(isAuthenticated);
+  const storedToken = localStorage.getItem("accessToken");
+  setIsAuthenticated(!!storedToken);
  }, []);
 
  const handleLogin = () => {
@@ -54,12 +53,6 @@ const App = () => {
                 <Link to="/admin">Admin</Link>
               </li>
             )}
-            {isAuthenticated && (
-              <li>
-                <Link to="/ProfileCard">Profile</Link>
-              </li>
-
-            )}
           </ul>
         </nav>
 
@@ -76,10 +69,6 @@ const App = () => {
           <Route
             path="/logout"
             element={<Logout onLogout={handleLogout} />}
-          />
-          <Route
-            path="/Profile"
-            element={<ProfileCard onLogout={handleLogout} />}
           />
           <Route
             path="/admin"

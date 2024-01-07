@@ -2,18 +2,15 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const sequelize = require('./database');
 require('dotenv').config();
 const app = express();
 const admin = require('./src/admin/admin');
 const verifyJWT = require('./middlewares/jwtVerify');
-const path = require('path');
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 const port = process.env.PORT || 3001;
@@ -55,7 +52,6 @@ app.get('/getusername', verifyJWT, (req, res) => {
 });
 
 app.use('/admin', admin);
-app.use('/auth/getFile', express.static(path.join(__dirname, 'uploads')));
 app.use('/auth', require('./routes/authRoutes'));
 
 
